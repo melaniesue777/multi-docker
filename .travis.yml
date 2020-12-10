@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+before install:
+  - docker build -t madditot/react-test -f ./client/Dockerfile.dev ./client/Dockerfile.dev ./client
+
+script: 
+  - docker run madditot/react-test npm test -- --coverage
+
+after_success: 
+  - docker build -t madditot/multi-client ./client
+  - docker build -t madditot/multi-nginx ./nginx
+  - docker build -t madditot/multi-server ./server
+  - docker build -t madditot/multi-worker ./worker
+  # log in to the docker cli
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # take those images and push them to docker hub
+  - docker push madditot/multi-client
+  - docker push madditot/multi-nginx 
+  - docker push madditot/multi-server 
+  - docker push madditot/multi-worker 
+
